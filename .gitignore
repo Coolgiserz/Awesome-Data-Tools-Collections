@@ -1,4 +1,7 @@
 *.conf
 *.log
 .svn/
-.idea/
+.idea
+*.pyc
+*.pyd
+__pycache__//
