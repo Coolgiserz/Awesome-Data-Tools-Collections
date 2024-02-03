@@ -225,5 +225,80 @@ class QichachaExcelParserPipeline():
                              )
 
     def run(self):
+        count = 0
         for data in tqdm.tqdm(self.df.itertuples()):
-            self.process_company(data)
+            count += self.process_company(data)
+        print(count)
+class QichachaBatchQueryExcelParserPipeline(QichachaExcelParserPipeline):
+    """
+    企查查批量查询结果入库工具
+    """
+    def get_company_name(self, data):
+        name = getattr(data, "系统匹配企业名称", None)
+        if isinstance(name, str):
+            if name== "-":
+                return None
+            return name.strip()
+    def process_company(self, data):
+        full_name = self.get_company_name(data)
+        if full_name is None:
+            return False
+        registered_capital_value, registered_capital_unit, registered_capital_currency = get_registered_capital(
+            getattr(data, "注册资本"))
+        paid_in_capital_value, paid_in_capital_unit, paid_in_capital_currency = get_registered_capital(
+            getattr(data, "实缴资本"))
+        return self.dao.merge_company(full_name=full_name,
+                               short_name=self.get_company_short_name(full_name),
+                               insured_people_number=self.insured_people_number_clean(getattr(data, "参保人数")),
+                               business_scope=self.common_text_clean(getattr(data, "经营范围")),
+                               registered_address=self.common_text_clean(getattr(data, "企业地址")),
+                               english_name=self.common_text_clean(getattr(data, "英文名")),
+                               representative=self.common_text_clean(getattr(data, "法定代表人")),
+                               registration_status=self.common_text_clean(getattr(data, "登记状态")),
+                               registered_capital_string=self.common_text_clean(getattr(data, "注册资本")),
+                               registered_capital_value=registered_capital_value,
+                               registered_capital_unit=registered_capital_unit,
+                               registered_capital_currency=registered_capital_currency,
+                               founded_date=founded_time_clean(getattr(data, "成立日期")),
+                               unified_social_credit_identifier=self.common_text_clean(
+                                   getattr(data, "统一社会信用代码")),
+                               phone=self.common_text_clean(getattr(data, "电话")),
+                               more_phone=self.common_text_clean(getattr(data, "更多电话")),
+                               email=self.common_text_clean(getattr(data, "邮箱")),
+                               more_email=self.common_text_clean(getattr(data, "更多邮箱")),
+                               province_name=self.common_text_clean(getattr(data, "所属省份")),
+                               city_name=self.common_text_clean(getattr(data, "所属城市")),
+                               district_name=self.common_text_clean(getattr(data, "所属区县")),
+                               # type_name=self.common_text_clean(getattr(data, "企业(机构)类型")),
+                               # '有限责任公司（自然人独资）'
+                               type_name=self.common_text_clean(data[27]),
+
+                               taxpayer_registeration_number=self.common_text_clean(getattr(data, "纳税人识别号")),
+                               registration_number=self.common_text_clean(getattr(data, "注册号")),
+                               institution_code=self.common_text_clean(getattr(data, "组织机构代码")),
+                               insured_number_annal=self.get_anual_year(getattr(data, "参保人数所属年报")),
+                               scale_code=get_company_scale(getattr(data, "企业规模")),
+                               former_name=self.common_text_clean(getattr(data, "曾用名")),
+                               official_website=self.common_text_clean(getattr(data, "官网")),
+                               profile=self.common_text_clean(getattr(data, "企业简介")),
+                               gb_industry_name=self.common_text_clean(getattr(data, "国标行业门类")),
+                               gb_major_industry_name=self.common_text_clean(getattr(data, "国标行业大类")),
+                               gb_medium_industry_name=self.common_text_clean(getattr(data, "国标行业中类")),
+                               gb_small_industry_name=self.common_text_clean(getattr(data, "国标行业小类")),
+                               approval_date=founded_time_clean(getattr(data, "核准日期")),
+                               operating_period=self.common_text_clean(getattr(data, "营业期限")),
+                               mailing_address=self.common_text_clean(getattr(data, "通信地址")),
+                               registration_authority=self.common_text_clean(getattr(data, "登记机关")),
+                               # registered_address_point = None,
+                               qichacha_category_name=self.common_text_clean(getattr(data, "企查查行业门类")),
+                               qichacha_major_category_name=self.common_text_clean(getattr(data, "企查查行业大类")),
+                               qichacha_medium_category_name=self.common_text_clean(getattr(data, "企查查行业中类")),
+                               qichacha_small_category_name=self.common_text_clean(getattr(data, "企查查行业小类")),
+                               data_source_id=1,
+                               nick_name=None,
+                               country_name=None,
+                               paid_in_capital_value=paid_in_capital_value,
+                               paid_in_capital_unit=paid_in_capital_unit,
+                               paid_in_capital_currency=paid_in_capital_currency,
+                               taxpayer_qualification=self.common_text_clean(getattr(data, "纳税人资质"))
+                               )

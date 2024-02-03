@@ -19,3 +19,6 @@ class ProjectConfigParserProxy(ConfigParserProxy):
 
     def get_data_dirname(self):
         return self.handler.get(self.data_section, "DIRNAME")
+
+    def get_data_batch_query_dirname(self):
+        return self.handler.get(self.data_section, "BATCH_QUERY_RESULT")
