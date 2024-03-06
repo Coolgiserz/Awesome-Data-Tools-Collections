@@ -172,7 +172,7 @@ class QichachaExcelParserPipeline():
         registered_capital_value, registered_capital_unit, registered_capital_currency = get_registered_capital(
             getattr(data, "注册资本"))
         # TODO check data alreay exists?
-        self.dao.merge_company(full_name=full_name,
+        return self.dao.merge_company(full_name=full_name,
                              short_name=self.get_company_short_name(full_name),
                              insured_people_number=self.insured_people_number_clean(getattr(data, "参保人数")),
                              business_scope=self.common_text_clean(getattr(data, "经营范围")),
@@ -229,6 +229,7 @@ class QichachaExcelParserPipeline():
         for data in tqdm.tqdm(self.df.itertuples()):
             count += self.process_company(data)
         print(count)
+
 class QichachaBatchQueryExcelParserPipeline(QichachaExcelParserPipeline):
     """
     企查查批量查询结果入库工具
@@ -302,3 +303,23 @@ class QichachaBatchQueryExcelParserPipeline(QichachaExcelParserPipeline):
                                paid_in_capital_currency=paid_in_capital_currency,
                                taxpayer_qualification=self.common_text_clean(getattr(data, "纳税人资质"))
                                )
+
+class CompanyBatchQueryGenerater(object):
+    def __init__(self, path, dao: CompanyDao):
+        self.path = path
+        self.df = pd.read_excel(path, skiprows=2,engine='openpyxl')
+        print(self.df.shape)
+        self.dao = dao
+
+class CompanyBatchQueryGeneraterFromControlCompany(CompanyBatchQueryGenerater):
+    """
+    根据控制企业Excel模版生成批量查询文件
+    """
+    def process_data(self, data):
+        pass
+
+    def run(self):
+        count = 0
+        for data in tqdm.tqdm(self.df.itertuples()):
+            count += self.process_data(data)
+        print(count)
